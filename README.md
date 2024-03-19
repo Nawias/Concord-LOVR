@@ -24,8 +24,9 @@ Auto generated docs for Concord can be found in `docs` folder, or on the [GitHub
 - [Assemblages](#assemblages)
   
 [Quick Example](#quick-example)  
-[Contributors](#contributors)  
-[License](#licence)
+[Concord Authors](#concord-authors)  
+[Concord Contributors](#concord-contributors)  
+[License](#license)
 
 ---
 
@@ -469,7 +470,7 @@ local DrawSystem = Concord.system({
 
 function DrawSystem:draw(pass)
     for _, e in ipairs(self.pool) do
-        pass:sphere(e.position.x, e.position.y, 0.2, 2)
+        pass:sphere(e.position.x, 0.1, e.position.y, 1)
     end
 end
 
@@ -482,18 +483,18 @@ world:addSystems(MoveSystem, DrawSystem)
 
 -- This Entity will be rendered on the screen, and move to the right at 100 pixels a second
 local entity_1 = Concord.entity(world)
-:give("position", 100, 100)
-:give("velocity", 100, 0)
+:give("position", -5, -5)
+:give("velocity", 5, 0)
 :give("drawable")
 
 -- This Entity will be rendered on the screen, and stay at 50, 50
 local entity_2 = Concord.entity(world)
-:give("position", 50, 50)
+:give("position", 3, -3)
 :give("drawable")
 
 -- This Entity does exist in the World, but since it doesn't match any System's filters it won't do anything
 local entity_3 = Concord.entity(world)
-:give("position", 200, 200)
+:give("position", 10, -10)
 
 
 -- Emit the events
@@ -501,8 +502,8 @@ function lovr.update(dt)
     world:emit("update", dt)
 end
 
-function lovr.draw()
-    world:emit("draw")
+function lovr.draw(pass)
+    world:emit("draw",pass)
 end
 ```
 
@@ -520,4 +521,5 @@ end
 ---
 
 ## License
-MIT Licensed - Copyright Justin van der Leij (Tjakka5)
+MIT Licensed - Copyright Michał Wójcik (Nawias)
+Originally MIT Licensed - Copyright Justin van der Leij (Tjakka5)

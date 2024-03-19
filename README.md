@@ -1,7 +1,9 @@
-# Concord
+# Concord-LÖVR
 
-Concord is a feature complete ECS for LÖVE.
-It's main focus is performance and ease of use.
+Concord-LÖVR is a fork of [Concord](https://github.com/Keyslam-Group/Concord), a feature complete ECS for LÖVE.
+It's purpose is to provide a tried and tested solution for the *awesome* [LÖVR framework](https://github.com/bjornbytes/lovr).
+
+Concord's main focus is performance and ease of use.
 With Concord it is possibile to easily write fast and clean code. 
 
 This readme will explain how to use Concord.
@@ -58,8 +60,8 @@ We'll start with the simplest one.
 
 ### Components
 Components are pure raw data. In Concord this is just a table with some fields.
-A position component might look like 
-`{ x = 100, y = 50}`, whereas a health Component might look like `{ currentHealth = 10, maxHealth = 100 }`.
+A transform component might look like 
+`{ position = Vec3, rotation = Quat}`, whereas a health Component might look like `{ currentHealth = 10, maxHealth = 100 }`.
 What is most important is that Components are data and nothing more. They have 0 functionality.
 
 ### Entities
@@ -69,7 +71,7 @@ Every Entity has it's own set of Components, with their own values.
 A crate might have the following components (Note: Not actual Concord syntax):
 ```lua
 {
-    position = { x = 100, y = 200 },
+    transform = { position = Vec3, rotation = Quat },
     texture  = { path = "crate.png", image = Image },
     pushable = { },
 }
@@ -78,7 +80,7 @@ A crate might have the following components (Note: Not actual Concord syntax):
 Whereas a player might have the following components:
 ```lua
 {
-    position     = { x = 200, y = 300 },
+    transform     = { value = Vec3, rotation = Quat },
     texture      = { path = "player.png", image = Image },
     controllable = { keys = "wasd" },
     health       = { currentHealth = 10, maxHealth = 100},
@@ -90,20 +92,20 @@ Any Component can be given to any Entity (once). Which Components an Entity has 
 ### Systems
 Systems are the things that actually _do_ stuff. They contain all your fancy algorithms and cool game logic.
 Each System will do one specific task like say, drawing Entities.
-For this they will only act on Entities that have the Components needed for this: `position` and `texture`. All other Components are irrelevant.
+For this they will only act on Entities that have the Components needed for this: `transform` and `texture`. All other Components are irrelevant.
 
 In Concord this is done something alike this:
 
 ```lua
-drawSystem = System({pool = {position, texture}}) -- Define a System that takes all Entities with a position and texture Component
+drawSystem = System({pool = {transform, texture}}) -- Define a System that takes all Entities with a transform and texture Component
 
-function drawSystem:draw() -- Give it a draw function
+function drawSystem:draw(pass) -- Give it a draw function
     for _, entity in ipairs(self.pool) do -- Iterate over all Entities that this System acts on
-        local position = entity.position -- Get the position Component of this Entity
+        local transform = entity.transform -- Get the transform Component of this Entity
         local texture = entity.texture -- Get the texture Component of this Entity
 
         -- Draw the Entity
-        love.graphics.draw(texture.image, position.x, position.y)
+        pass:draw(texture.image, transform.position, 1, transform.rotation)
     end
 end
 ```
@@ -151,9 +153,9 @@ print(Concord.components.componentName)
 -- This allowes you to chain methods
 
 myEntity
-:give("position", 100, 50)
-:give("velocity", 200, 0)
-:remove("position")
+:give("transform", lovr.math.newVec3(5,10), lovr.math.newQuat())
+:give("velocity", lovr.math.newVec3(10,0,0))
+:remove("transform")
 :destroy()
 
 myWorld
@@ -167,18 +169,18 @@ myWorld
 When defining a ComponentClass you need to pass in a name and usually a `populate` function. This will fill the Component with values.
 
 ```lua
--- Create the position class with a populate function
+-- Create the transform class with a populate function
 -- The component variable is the actual Component given to an Entity
 -- The x and y variables are values we pass in when we create the Component 
-Concord.component("position" function(component, x, y)
-    component.x = x or 0
-    component.y = y or 0
+Concord.component("transform" function(component, pos, rot)
+    component.position = pos or lovr.math.newVec3()
+    component.rotation = rot or lovr.math.newQuat()
 end)
 
 -- Create a ComponentClass without a populate function
 -- Components of this type won't have any fields.
 -- This can be useful to indiciate state.
-local pushableComponentClass = Concord.component("position")
+local pushableComponentClass = Concord.component("transform")
 ```
 
 ### Entities
@@ -465,9 +467,9 @@ local DrawSystem = Concord.system({
     pool = {"position", "drawable"}
 })
 
-function DrawSystem:draw()
+function DrawSystem:draw(pass)
     for _, e in ipairs(self.pool) do
-        love.graphics.circle("fill", e.position.x, e.position.y, 5)
+        pass:sphere(e.position.x, e.position.y, 0.2, 2)
     end
 end
 
@@ -495,18 +497,19 @@ local entity_3 = Concord.entity(world)
 
 
 -- Emit the events
-function love.update(dt)
+function lovr.update(dt)
     world:emit("update", dt)
 end
 
-function love.draw()
+function lovr.draw()
     world:emit("draw")
 end
 ```
 
 ---
-
-## Contributors
+## Concord Authors
+- __Keyslam-Group__
+## Concord Contributors
 - __Positive07__: Constant support and a good rubberduck
 - __Brbl__: Early testing and issue reporting
 - __Josh__: Squashed a few bugs and generated docs

@@ -30,15 +30,14 @@ function Utils.loadNamespace(pathOrFiles, namespace)
    end
 
    if type(pathOrFiles) == "string" then
-       local info = love.filesystem.getInfo(pathOrFiles) -- luacheck: ignore
-       if info == nil or info.type ~= "directory" then
+        if not lovr.filesystem.isDirectory(pathOrFiles) then
             Utils.error(2, "bad argument #1 to 'loadNamespace' (path '%s' not found)", pathOrFiles)
-       end
+        end
 
-       local files = love.filesystem.getDirectoryItems(pathOrFiles)
+       local files = lovr.filesystem.getDirectoryItems(pathOrFiles)
 
        for _, file in ipairs(files) do
-            local isFile = love.filesystem.getInfo(pathOrFiles .. "/" .. file).type == "file"
+            local isFile = lovr.filesystem.isFile(pathOrFiles .. "/" .. file)
 
             if isFile and string.match(file, '%.lua$') ~= nil then
                  local name = file:sub(1, #file - 4)
